@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import type { RelationshipType } from "@/types";
 
 export type ConversationState =
   | "BANTER"
@@ -10,15 +11,25 @@ export type ConversationState =
 
 const PIVOT_THRESHOLD = 4;
 
+// Only these relationship types go through the forced funnel
+const FUNNEL_TYPES: RelationshipType[] = ["DATING_PIPELINE", "STUDENT_LEAD"];
+
 /**
- * Evaluates the current conversation state and returns the next state
- * based on messageCount and any scheduling confirmation signals.
+ * Evaluates the current conversation state and returns the next state.
+ * The pivot trigger only applies to DATING_PIPELINE and STUDENT_LEAD.
+ * All other relationship types stay in BANTER permanently.
  */
 export function evaluateTransition(
   currentState: ConversationState,
   messageCount: number,
-  latestMessage: string
+  latestMessage: string,
+  relationshipType: RelationshipType
 ): ConversationState {
+  // Non-funnel types never transition — stay in perpetual BANTER
+  if (!FUNNEL_TYPES.includes(relationshipType)) {
+    return currentState;
+  }
+
   switch (currentState) {
     case "BANTER":
       if (messageCount >= PIVOT_THRESHOLD) return "LOGISTICS_PIVOT";

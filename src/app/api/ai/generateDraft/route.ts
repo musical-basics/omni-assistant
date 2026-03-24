@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 4. Build prompt and call LLM
-  const systemPrompt = buildSystemPrompt(convo.state);
+  const systemPrompt = buildSystemPrompt(convo.state, convo.relationshipType);
   const draftContent = await generateReply(systemPrompt, history);
 
   if (!draftContent) {

@@ -8,7 +8,7 @@ import type { IncomingMessagePayload } from "@/types";
 
 export async function POST(req: NextRequest) {
   const body: IncomingMessagePayload = await req.json();
-  const { chatId, platform, contactName, sender, content } = body;
+  const { chatId, platform, contactName, sender, content, relationshipType } = body;
 
   // 1. Upsert conversation
   const existing = await db.query.conversations.findFirst({
@@ -18,7 +18,12 @@ export async function POST(req: NextRequest) {
   const newCount = (existing?.messageCount ?? 0) + (sender === "them" ? 1 : 0);
 
   if (existing) {
-    const nextState = evaluateTransition(existing.state, newCount, content);
+    const nextState = evaluateTransition(
+      existing.state,
+      newCount,
+      content,
+      existing.relationshipType
+    );
     await db
       .update(conversations)
       .set({
@@ -33,6 +38,7 @@ export async function POST(req: NextRequest) {
       platform,
       contactName,
       state: "BANTER",
+      relationshipType: relationshipType || "FRIEND",
       messageCount: sender === "them" ? 1 : 0,
       lastUpdated: new Date(),
     });

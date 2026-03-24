@@ -1,3 +1,12 @@
+export type RelationshipType =
+  | "DATING_PIPELINE"
+  | "STUDENT_LEAD"
+  | "ACTIVE_STUDENT"
+  | "FRIEND"
+  | "VIP"
+  | "COWORKER"
+  | "HIRED_HELP";
+
 // Incoming webhook payload
 export interface IncomingMessagePayload {
   chatId: string;
@@ -6,6 +15,7 @@ export interface IncomingMessagePayload {
   sender: "me" | "them";
   content: string;
   timestamp?: string;
+  relationshipType?: RelationshipType;
 }
 
 // Draft generation request
